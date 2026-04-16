@@ -1,0 +1,45 @@
+@import "tailwindcss";
+@import 'highlight.js/styles/github-dark.css';
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: #020617;
+  color: #e2e8f0;
+}
+
+/* ─── Monaco line highlight (click-to-line sync flash) ─── */
+.monaco-line-highlight {
+  background: rgba(59, 130, 246, 0.18) !important;
+  border-left: 3px solid #3b82f6 !important;
+}
+
+/* ─── Preview prose base ─── */
+.preview-content {
+  font-size: 0.9375rem;
+  line-height: 1.75;
+}
+
+.preview-content img {
+  max-width: 100%;
+}
+
+/* ─── Custom scrollbar for preview pane ─── */
+.preview-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.preview-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.preview-content::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.3);
+  border-radius: 3px;
+}
+
+.preview-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.55);
+}
