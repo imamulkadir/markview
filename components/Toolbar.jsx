@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { importMarkdownFile, openMarkdownFilePicker, saveToFileHandle, exportMarkdown, exportHTML } from '../lib/fileUtils';
+import { importMarkdownFile, openMarkdownFilePicker, saveToFileHandle, exportMarkdown, exportHTML, exportPDF } from '../lib/fileUtils';
 import { clearContent } from '../lib/storage';
 import toast from 'react-hot-toast';
 
@@ -49,9 +49,8 @@ const TOOLBAR_ACTIONS = [
   },
 ];
 
-export default function Toolbar({ editorRef, monacoRef, content, onChange, onReset, previewRef }) {
+export default function Toolbar({ editorRef, monacoRef, content, onChange, onReset, previewRef, importedFile, setImportedFile }) {
   const fileInputRef = useRef(null);
-  const [importedFile, setImportedFile] = useState(null); // { handle, name }
   const [saveState, setSaveState] = useState('idle'); // 'idle' | 'saving' | 'saved'
 
   function insertMarkdown(insertFn) {
@@ -123,6 +122,12 @@ export default function Toolbar({ editorRef, monacoRef, content, onChange, onRes
     toast.success('HTML exported');
   }
 
+  function handleExportPdf() {
+    const el = previewRef?.current?.current;
+    if (!el) { toast.error('Preview not ready'); return; }
+    exportPDF(el);
+  }
+
   function handleReset() {
     onReset();
     clearContent();
@@ -189,6 +194,13 @@ export default function Toolbar({ editorRef, monacoRef, content, onChange, onRes
           className="rounded px-2.5 py-1 text-xs font-medium text-slate-300 transition-colors hover:bg-slate-700 hover:text-white"
         >
           .html
+        </button>
+        <button
+          title="Export as PDF"
+          onClick={handleExportPdf}
+          className="rounded px-2.5 py-1 text-xs font-medium text-slate-300 transition-colors hover:bg-slate-700 hover:text-white"
+        >
+          .pdf
         </button>
         <div className="mx-1 h-5 w-px bg-slate-700" />
         <button

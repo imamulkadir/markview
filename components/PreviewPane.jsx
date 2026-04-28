@@ -19,7 +19,7 @@ const sanitizeSchema = {
   },
 };
 
-export default function PreviewPane({ content, editorRef, monacoRef, previewRef }) {
+export default function PreviewPane({ content, editorRef, monacoRef, previewRef, importedFile }) {
   const containerRef = useRef(null);
 
   // Expose preview container to parent for HTML export
@@ -186,7 +186,14 @@ export default function PreviewPane({ content, editorRef, monacoRef, previewRef 
         <span className="text-xs font-medium uppercase tracking-widest text-slate-400">
           Preview
         </span>
-        <span className="text-xs text-slate-500">Click any element to jump to source</span>
+        {importedFile ? (
+          <span className="flex items-center gap-1.5 text-xs text-slate-400 truncate max-w-sm" title={`Editing: ${importedFile.name} — browsers do not expose the full disk path`}>
+            <span className="text-emerald-500">●</span>
+            <span className="truncate">{importedFile.name}</span>
+          </span>
+        ) : (
+          <span className="text-xs text-slate-500">Click any element to jump to source</span>
+        )}
       </div>
       <div
         ref={containerRef}

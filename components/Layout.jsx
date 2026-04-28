@@ -23,6 +23,7 @@ export default function Layout() {
   // After hydration the effect below patches in whatever is stored in localStorage.
   const [content, setContent] = useState(DEFAULT_MARKDOWN);
   const [hydrated, setHydrated] = useState(false);
+  const [importedFile, setImportedFile] = useState(null); // { handle, name }
 
   const [mobileView, setMobileView] = useState('editor'); // 'editor' | 'preview'
 
@@ -70,6 +71,8 @@ export default function Layout() {
         onChange={setContent}
         onReset={handleReset}
         previewRef={previewRef}
+        importedFile={importedFile}
+        setImportedFile={setImportedFile}
       />
 
       {/* Mobile toggle */}
@@ -123,6 +126,7 @@ export default function Layout() {
             editorRef={editorRef}
             monacoRef={monacoRef}
             previewRef={previewRef}
+            importedFile={importedFile}
           />
         </div>
       </div>
