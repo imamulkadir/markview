@@ -1,7 +1,7 @@
 'use client';
 
-import { useRef } from 'react';
-import { importMarkdownFile, exportMarkdown, exportHTML } from '../lib/fileUtils';
+import { useRef, useState } from 'react';
+import { importMarkdownFile, openMarkdownFilePicker, saveToFileHandle, exportMarkdown, exportHTML } from '../lib/fileUtils';
 import { clearContent } from '../lib/storage';
 import toast from 'react-hot-toast';
 
@@ -51,6 +51,8 @@ const TOOLBAR_ACTIONS = [
 
 export default function Toolbar({ editorRef, monacoRef, content, onChange, onReset, previewRef }) {
   const fileInputRef = useRef(null);
+  const [importedFile, setImportedFile] = useState(null); // { handle, name }
+  const [saveState, setSaveState] = useState('idle'); // 'idle' | 'saving' | 'saved'
 
   function insertMarkdown(insertFn) {
     const editor = editorRef?.current;
@@ -65,16 +67,47 @@ export default function Toolbar({ editorRef, monacoRef, content, onChange, onRes
     editor.focus();
   }
 
+  // Fallback handler for browsers without File System Access API
   async function handleImport(e) {
     try {
       const text = await importMarkdownFile(e);
       onChange(text);
-      toast.success('File imported successfully');
+      setImportedFile(null);
+      toast.success('File imported');
     } catch (err) {
       toast.error(err.message || 'Import failed');
     } finally {
-      // Reset file input so same file can be re-imported
       if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  }
+
+  function handleImportClick() {
+    if ('showOpenFilePicker' in window) {
+      openMarkdownFilePicker()
+        .then(({ text, fileHandle }) => {
+          onChange(text);
+          setImportedFile({ handle: fileHandle, name: fileHandle.name });
+          toast.success(`Imported ${fileHandle.name}`);
+        })
+        .catch((err) => {
+          if (err.name === 'AbortError') return;
+          toast.error(err.message || 'Import failed');
+        });
+    } else {
+      fileInputRef.current?.click();
+    }
+  }
+
+  async function handleSave() {
+    if (!importedFile || saveState === 'saving') return;
+    setSaveState('saving');
+    try {
+      await saveToFileHandle(importedFile.handle, content);
+      setSaveState('saved');
+      setTimeout(() => setSaveState('idle'), 2000);
+    } catch (err) {
+      setSaveState('idle');
+      toast.error(err.message || 'Save failed');
     }
   }
 
@@ -93,6 +126,7 @@ export default function Toolbar({ editorRef, monacoRef, content, onChange, onRes
   function handleReset() {
     onReset();
     clearContent();
+    setImportedFile(null);
     toast.success('Reset to default content');
   }
 
@@ -125,10 +159,22 @@ export default function Toolbar({ editorRef, monacoRef, content, onChange, onRes
         />
         <button
           title="Import .md file"
-          onClick={() => fileInputRef.current?.click()}
+          onClick={handleImportClick}
           className="rounded px-2.5 py-1 text-xs font-medium text-slate-300 transition-colors hover:bg-slate-700 hover:text-white"
         >
           Import
+        </button>
+        <button
+          title={importedFile ? `Save to ${importedFile.name}` : 'Import a file first'}
+          onClick={handleSave}
+          disabled={!importedFile || saveState === 'saving'}
+          className={`rounded px-2.5 py-1 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40
+            ${saveState === 'saved'
+              ? 'text-emerald-300'
+              : 'text-emerald-400 hover:bg-emerald-900/30 hover:text-emerald-300'}
+            disabled:hover:bg-transparent disabled:hover:text-emerald-400`}
+        >
+          {saveState === 'saving' ? 'Saving…' : saveState === 'saved' ? 'Saved ✓' : 'Save'}
         </button>
         <button
           title="Export as .md"
